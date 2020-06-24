@@ -10,9 +10,13 @@ mongoose.connect('mongodb://localhost:27017/image-api', {
 });
 
 const imageSchema = new mongoose.Schema({
-	url  : String,
-	name : String,
-	type : String
+	url      : { type: String, required: true },
+	name     : { type: String, required: true },
+	type     : { type: String, required: true },
+	metadata : {
+		size    : { type: String },
+		extType : { type: String }
+	}
 });
 
 const Image = mongoose.model('Image', imageSchema);
@@ -25,20 +29,28 @@ app.get('/', (req, res) => {
 
 app.post('/api/add_image', (req, res) => {
 	const newImage = {
-		url  : req.body.url,
-		name : req.body.name,
-		type : req.body.type
+		url      : req.body.url,
+		name     : req.body.name,
+		type     : req.body.type,
+		metadata : {
+			size    : req.query.size,
+			extType : req.query.extType
+		}
 	};
 
 	Image.create(newImage, (err, addedImage) => {
 		if (err) {
-			res.send(err.message);
+			res.send(err);
 		} else {
 			const object = {
-				id   : addedImage._id,
-				url  : addedImage.url,
-				name : addedImage.name,
-				type : addedImage.type
+				id       : addedImage._id,
+				url      : addedImage.url,
+				name     : addedImage.name,
+				type     : addedImage.type,
+				metadata : {
+					size    : addedImage.metadata.size,
+					extType : addedImage.metadata.extType
+				}
 			};
 
 			res.send(object);
@@ -66,10 +78,11 @@ app.get('/api/get_images', (req, res) => {
 
 			data.map((image, index) => {
 				object[index] = {
-					id   : image.id,
-					url  : image.url,
-					name : image.name,
-					type : image.type
+					id       : image.id,
+					url      : image.url,
+					name     : image.name,
+					type     : image.type,
+					metadata : image.metadata
 				};
 			});
 
